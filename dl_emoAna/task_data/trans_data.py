@@ -10,15 +10,17 @@ table_merge = pd.merge(data, label)
 table_merge['title'] = table_merge['title'].astype('str')
 table_merge['content'] = table_merge['content'].astype('str')
 table_merge['label'] = table_merge['label'].astype('int')
-# table_merge['content'].str.cat(table_merge['title']) 
+table_merge['title'].str.cat(table_merge['content']) 
+table_merge['content'] = table_merge['title']
+
 # table_merge['content'] = table_merge['content'].str[:100]
 # table_merge['content'] = table_merge['content'].astype('str')
 # table_merge['content'].replace('\s','a')
 # table_merge['content'] = table_merge['content'].str.strip('\t')
-table_merge['content'] = table_merge['title']
+# table_merge['content'] = table_merge['title']
 
 # 删除有空值的行
-# table_merge.dropna()
+table_merge.dropna()
 row_len = table_merge.shape[0]
 
 # 保存转换后的数据
