@@ -403,41 +403,42 @@ def evaluate_wrapper(args, reader, exe, test_prog, test_pyreader, graph_vars,
 
 def predict_wrapper(args, reader, exe, test_prog, test_pyreader, graph_vars,
                     epoch, steps):
-    test_sets = args.test_set.split(',')
-    save_dirs = args.test_save.split(',')
-    assert len(test_sets) == len(save_dirs)
-    batch_size = args.batch_size if args.predict_batch_size is None else args.predict_batch_size
+    if args.test_set is not None:
+        test_sets = args.test_set.split(',')
+        save_dirs = args.test_save.split(',')
+        assert len(test_sets) == len(save_dirs)
+        batch_size = args.batch_size if args.predict_batch_size is None else args.predict_batch_size
 
-    for test_f, save_f in zip(test_sets, save_dirs):
-        test_pyreader.decorate_tensor_provider(
-            reader.data_generator(
-                test_f,
-                batch_size=batch_size,
-                epoch=1,
-                dev_count=1,
-                shuffle=False))
+        for test_f, save_f in zip(test_sets, save_dirs):
+            test_pyreader.decorate_tensor_provider(
+                reader.data_generator(
+                    test_f,
+                    batch_size=batch_size,
+                    epoch=1,
+                    dev_count=1,
+                    shuffle=False))
 
-        save_path = save_f + '.' + str(epoch) + '.' + str(steps)
-        log.info("testing {}, save to {}".format(test_f, save_path))
-        qids, preds, probs = predict(
-            exe,
-            test_prog,
-            test_pyreader,
-            graph_vars,
-            is_classify=args.is_classify,
-            is_regression=args.is_regression)
+            save_path = save_f + '.' + str(epoch) + '.' + str(steps)
+            log.info("testing {}, save to {}".format(test_f, save_path))
+            qids, preds, probs = predict(
+                exe,
+                test_prog,
+                test_pyreader,
+                graph_vars,
+                is_classify=args.is_classify,
+                is_regression=args.is_regression)
 
-        save_dir = os.path.dirname(save_path)
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
+            save_dir = os.path.dirname(save_path)
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
 
-        with open(save_path, 'w') as f:
-            if len(qids) == 0:
-                for s, p in zip(preds, probs):
-                    f.write('{}\t{}\n'.format(s, p))
-            else:
-                for id, s, p in zip(qids, preds, probs):
-                    f.write('{}\t{}\t{}\n'.format(id, s, p))
+            with open(save_path, 'w') as f:
+                if len(qids) == 0:
+                    for s, p in zip(preds, probs):
+                        f.write('{}\t{}\n'.format(s, p))
+                else:
+                    for id, s, p in zip(qids, preds, probs):
+                        f.write('{}\t{}\t{}\n'.format(id, s, p))
 
 
 if __name__ == '__main__':
